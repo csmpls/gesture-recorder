@@ -12,12 +12,12 @@ import sys
 import platform
 import requests
 import json
+from datetime import datetime
 
 class Client():
 
     def __init__(self, server_url):
         self.server_url = server_url 
-        self.username = None
         self.buffer_size = 512 
         self.raw_log = []
         self.attention_esense= None
@@ -27,10 +27,18 @@ class Client():
         self.start_time = None
         self.end_time = None
         self.port = '/dev/tty.MindWaveMobile-DevA'
+        self.datehandler = lambda obj: (
+            obj.isoformat()
+            if isinstance(obj, datetime)
+            or isinstance(obj, date)
+            else None)
+
+    def get_current_time(self):
+        return datetime.now()
 
     def make_object(self):
         # construct json
-        return {'username':self.username,
+        return {'reading_time': self.get_current_time(),
             'signal_quality':self.signal_quality,
             'raw_values':self.raw_log, 
             'attention_esense':self.attention_esense,
@@ -39,9 +47,12 @@ class Client():
         }
 
     def post_data(self):
+        # handler for the date
         requests.post(
             self.server_url,
-            data=json.dumps(self.make_object()),
+            data=json.dumps(
+                self.make_object(), 
+                default=self.datehandler),
             headers={'content-type': 'application/json', 'Accept': 'text/plain'}
         )
 
@@ -54,6 +65,7 @@ class Client():
 
         print 'starting communication with device...'
 
+        # parse packets every time one comes in
         for pkt in ThinkGearProtocol(self.port).get_packets():
 
             for d in pkt:
@@ -82,4 +94,3 @@ class Client():
                         # reset variables
                         self.raw_log = []
                         self.signal_quality = 0
-

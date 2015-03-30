@@ -37,7 +37,7 @@ def hello():
 '''
 @socketio.on('connected')
 def test_message(message):
-	emit('sup', {'data': 'hello!'})
+	emit('server_says', {'data': 'hello!'})
 
 
 '''
@@ -46,11 +46,11 @@ def test_message(message):
 # returns NULL if mwm hasnt gotten a good signal yet
 # and JSON OBJECT OF THE DATA if it has
 def handle_data(data):
-	global mindwave_has_initialized
-	data = request.get_json()
-	if not mindwave_has_initialized: 
-		mindwave_has_initialized = check_if_initialized(data)
-		return None
+	# global mindwave_has_initialized
+	# data = request.get_json()
+	# if not mindwave_has_initialized: 
+	# 	mindwave_has_initialized = check_if_initialized(data)
+	# 	return None
 	return data
 
 # checks if the neurosky is initialized

@@ -1,15 +1,12 @@
 from flask import Flask, request, send_file, render_template
 from flask.ext.socketio import SocketIO, emit
-import thread
 import json
 import mindwave_client
+import time
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
-
-# global variables related to mindwave's state
-mindwave_has_initialized = False
 
 ''' 
 		deliver the webapp to the browser
@@ -35,32 +32,31 @@ def hello():
 '''
 		socket communication with browser
 '''
-@socketio.on('connected')
+@socketio.on('connect')
 def test_message(message):
-	emit('server_says', {'data': 'hello!'})
+	print 'user wants to connect to the mindwave!', message
+	# print 'connecting it...'
+	stop_mw_client_thread()
+	emit('server_says', {'msg':'i stopped your mindwave!'})
+	create_and_start_mw_client_thread()
+	emit('server_says', {'msg':'i started the thread that should connect your mindwave!!'})
+	# emit('server_says', {'msg':'i started the thread that connects to your mindwave!'})
 
+def stop_mw_client_thread():
+	global mw_client_thread
+	mw_client_thread.stop()
+	time.sleep(3) # wait 3 seconds to make sure the thread is stopped
+
+def create_and_start_mw_client_thread():
+	global mw_client_thread
+	mw_client_thread = mindwave_client.Client('http://localhost:5000/')
+	mw_client_thread.start()
 
 '''
 		utils
 '''
-# returns NULL if mwm hasnt gotten a good signal yet
-# and JSON OBJECT OF THE DATA if it has
 def handle_data(data):
-	# global mindwave_has_initialized
-	# data = request.get_json()
-	# if not mindwave_has_initialized: 
-	# 	mindwave_has_initialized = check_if_initialized(data)
-	# 	return None
 	return data
-
-# checks if the neurosky is initialized
-# TODO: open browser up when ns is initialized
-def check_if_initialized(data):
-	if (data['attention_esense']) > 0:
-		print 'ok! navigate to 127.0.0.1:5000'
-		return True
-	return False
-	
 
 '''
 		run the server
@@ -68,7 +64,14 @@ def check_if_initialized(data):
 '''
 if __name__ == "__main__":
 	# start a client, give it the url at which data is sent
-	mindwave_client = mindwave_client.Client('http://localhost:5000/')
-	thread.start_new_thread(mindwave_client.run, ())
+	# global mw_client_stop_event
+	# mw_client_stop_event = threading.Event()
+	# mw_client = mindwave_client.Client('http://localhost:5000/')
+	# mw_client_thread.daemon = True
+	# mw_client_thread = threading.Thread(target=mw_client.run, args=())
+	create_and_start_mw_client_thread()
+	# mw_client_thread = mindwave_client.Client('http://localhost:5000/')
+	# mw_client_thread.start(
+	# thread.start_new_thread(mindwave_client.run, ())
 	socketio.run(app)
 	# app.run(port=4228,debug=True)

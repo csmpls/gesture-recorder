@@ -14,9 +14,25 @@ import requests
 import json
 from datetime import datetime
 
-class Client():
+import threading
+
+class Client(threading.Thread):
+
+    ''' 
+        A thread that connects to MindWaveMobile-DevA
+
+        It parses the data that comes in over serial
+        Output happens as a /POST request to server_url
+
+        Ask the thread to stop by calling its join() method
+
+    '''
 
     def __init__(self, server_url):
+
+        super(Client, self).__init__()
+        self._stop = threading.Event()
+
         self.server_url = server_url 
         self.buffer_size = 512 
         self.raw_log = []
@@ -68,29 +84,45 @@ class Client():
         # parse packets every time one comes in
         for pkt in ThinkGearProtocol(self.port).get_packets():
 
+            # while not self.stoprequest.isSet():
+
             for d in pkt:
 
-                if isinstance(d, ThinkGearPoorSignalData):
-                    self.signal_quality += int(str(d))
-                    
-                if isinstance(d, ThinkGearAttentionData):
-                    self.attention_esense = int(str(d))
+                if not self.stopped():
 
-                if isinstance(d, ThinkGearMeditationData):
-                    self.meditation_esense = int(str(d))
+                    if isinstance(d, ThinkGearPoorSignalData):
+                        self.signal_quality += int(str(d))
+                        
+                    if isinstance(d, ThinkGearAttentionData):
+                        self.attention_esense = int(str(d))
 
-                if isinstance(d, ThinkGearEEGPowerData):
-                    # this cast is both amazing and embarrassing
-                    self.eeg_power = eval(str(d).replace('(','[').replace(')',']'))
+                    if isinstance(d, ThinkGearMeditationData):
+                        self.meditation_esense = int(str(d))
 
-                if isinstance(d, ThinkGearRawWaveData): 
-                    # record a reading
-                    # how/can/should we cast this data beforehand?
-                    self.raw_log.append(float(str(d))) 
+                    if isinstance(d, ThinkGearEEGPowerData):
+                        # this cast is both amazing and embarrassing
+                        self.eeg_power = eval(str(d).replace('(','[').replace(')',']'))
 
-                    # the data is all shipped here
-                    if len(self.raw_log) == self.buffer_size:
-                        self.post_data()
-                        # reset variables
-                        self.raw_log = []
-                        self.signal_quality = 0
+                    if isinstance(d, ThinkGearRawWaveData): 
+                        # record a reading
+                        # how/can/should we cast this data beforehand?
+                        self.raw_log.append(float(str(d))) 
+
+                        # the data is all shipped here
+                        if len(self.raw_log) == self.buffer_size:
+                            self.post_data()
+                            # reset variables
+                            self.raw_log = []
+                            self.signal_quality = 0
+
+                if self.stopped():
+                    sys.exit(0)
+
+        print 'thread stopping'
+
+
+    def stop(self):
+        self._stop.set()
+
+    def stopped(self):
+        return self._stop.is_set()

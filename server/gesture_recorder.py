@@ -64,6 +64,7 @@ def check_if_initialized(data):
 
 '''
 		run the server
+		TODO this should be its own file
 '''
 if __name__ == "__main__":
 	# start a client, give it the url at which data is sent

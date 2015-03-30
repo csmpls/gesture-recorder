@@ -1,12 +1,11 @@
-example_view = require './lib/view.coffee'
+login_view = require './lib/login_view.coffee'
 sockets = require './lib/sockets.coffee'
 $ = require('jquery')
 
 init = ->
-	console.log 'main app launching'
-	example_view.setup()
+	login_view.setup()
 	sockets.setup()
-	console.log 'main app done+launched'
+	console.log 'app launched.'
 
 # launch the app
 $(document).ready(() ->

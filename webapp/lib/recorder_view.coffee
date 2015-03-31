@@ -45,7 +45,7 @@ set_to_recorder_screen = (userId, electrodePosition, gesture_list) ->
 		electrodePosition: electrodePosition
 		gesture_list: gesture_list))
 
-exports.setup = (socket, userId, electrodePosition) ->
+setup = (socket, userId, electrodePosition) ->
 
 	gestures = ['color', 'pass', 'sport', 'finger'] 
 
@@ -63,8 +63,7 @@ exports.setup = (socket, userId, electrodePosition) ->
 
 	recordRequestStream
 		.onValue((v) ->
-			socket.emit('record', v)
-		)
+			socket.emit('record', v))
 
 	# a stream of server's messages that it has started to record
 	startRecordingStream = Bacon.fromEventTarget(socket, 'start_record')
@@ -76,8 +75,15 @@ exports.setup = (socket, userId, electrodePosition) ->
 
 	# set back to record screen whenever gesture recording ends 
 	endRecordingStream.onValue( () -> 
-		console.log 'end recording event'
-		set_to_recorder_screen(userId, electrodePosition, gestures))
+		re_setup(socket, userId, electrodePosition, gestures))
 
 	# return a stream of recording requests
 	recordRequestStream
+
+re_setup = (socket, userId, electrodePosition, gestures) -> 
+	setup(socket
+		, userId
+		, electrodePosition
+		, gestures)
+
+exports.setup = setup

@@ -1,8 +1,8 @@
 from lib.utils import save_reading, get_trial_path, decode_dict
 from flask import Flask, request, send_file, render_template
 from flask.ext.socketio import SocketIO, emit
+import lib.mindwave_client as mindwave_client
 import json
-import lib.mindwave_client
 import time
 import traceback
 
@@ -23,7 +23,7 @@ def hello():
 
 	# receive data from mindwave_client
 	if request.method == 'POST':
-		data = handle_data(json.dumps(request.json))
+		data = handle_data(request.json)
 		# send socket.io
 		socketio.emit('data', data)
 		return 'ok'
@@ -66,7 +66,7 @@ def record_gesture(message):
 '''
 def handle_data(data):
 	global is_recording
-	if (is_recording): save_data(data)
+	if (is_recording): save_data(json.dumps(data))
 	return data
 
 def save_data(data):
@@ -108,7 +108,7 @@ if __name__ == "__main__":
 	# number of frames to record
 	# 1 sec == 2 frames
 	global numFrames
-	numFrames = 20
+	numFrames = 10
 
 	global mw_client_thread
 	mw_client_thread = None

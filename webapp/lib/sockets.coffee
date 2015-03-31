@@ -6,13 +6,18 @@ Bacon = require 'baconjs'
 exports.setup = () ->
 
 	socket = io.connect('http://localhost:5000')
-	socket.emit('connected', 'sup')
 
 	socket.on('server_says', (data) -> 
 		console.log 'server says: ', data)
 
 	# data from the mindwave mobile
-	socket.on('data', (data) -> 
-		console.log 'mw data: ', data)
+	socket.on('data', (data) -> data)
 
-	socket	
+	# message that the server is recording / is done recording
+	socket.on('start_record', (msg) -> msg)
+
+	socket.on('end_record', (msg) -> 
+		console.log 'sockets.coffee: server says its done reocrding'
+		msg)
+
+	# socket	

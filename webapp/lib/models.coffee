@@ -14,12 +14,8 @@ UserData = Backbone.Model.extend(
 		userId: null
 		electrodePosition: null
 	initialize: () -> console.log 'user model initialized'
-	setUserId: (v) -> 
-		@set(userId: v)
-		console.log 'we set the user ID!', @get('userId')
-	setElectrodePosition: (v) -> 
-		@set(electrodePosition: v)
-		console.log 'we set the electrodePosition!', @get('electrodePosition')
+	setUserId: (v) -> @set(userId: v)
+	setElectrodePosition: (v) -> @set(electrodePosition: v)
 )
 
 exports.mindwaveData = () -> new MindwaveData()

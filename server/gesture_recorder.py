@@ -33,7 +33,7 @@ def hello():
 		socket communication with browser
 '''
 @socketio.on('connect')
-def test_message(message):
+def connect_to_mwm(message):
 	print 'user wants to connect to the mindwave!', message
 	# print 'connecting it...'
 	stop_mw_client_thread()
@@ -42,10 +42,42 @@ def test_message(message):
 	emit('server_says', {'msg':'i started the thread that should connect your mindwave!!'})
 	# emit('server_says', {'msg':'i started the thread that connects to your mindwave!'})
 
+@socketio.on('record')
+def record_gesture(message):
+	print 'user wants to record a gesture!', message
+	global is_recording
+	is_recording = True
+	emit('start_record', {'msg': 'im starting the recording!'})
+
+'''
+		utils
+'''
+def handle_data(data):
+	global is_recording
+	if (is_recording): save_data(data)
+	return data
+
+def save_data(data):
+	global numFrames
+	global framesRecorded
+	# if we've recorded all our frames, 
+	if (framesRecorded == numFrames): 
+		# reset the global vars
+		global is_recording
+		framesRecorded = 0
+		is_recording = False
+		# and inform the client that we're done
+		socketio.emit('end_record', {'msg': 'done_reocording'})
+		return 
+	else:
+		framesRecorded += 1
+		print 'recording frame', framesRecorded
+
 def stop_mw_client_thread():
 	global mw_client_thread
-	mw_client_thread.stop()
-	time.sleep(3) # wait 3 seconds to make sure the thread is stopped
+	if mw_client_thread is not None:
+		mw_client_thread.stop()
+		time.sleep(2) # wait 2 seconds to make sure the thread is stopped
 
 def create_and_start_mw_client_thread():
 	global mw_client_thread
@@ -53,25 +85,24 @@ def create_and_start_mw_client_thread():
 	mw_client_thread.start()
 
 '''
-		utils
-'''
-def handle_data(data):
-	return data
-
-'''
 		run the server
-		TODO this should be its own file
 '''
 if __name__ == "__main__":
-	# start a client, give it the url at which data is sent
-	# global mw_client_stop_event
-	# mw_client_stop_event = threading.Event()
-	# mw_client = mindwave_client.Client('http://localhost:5000/')
-	# mw_client_thread.daemon = True
-	# mw_client_thread = threading.Thread(target=mw_client.run, args=())
-	create_and_start_mw_client_thread()
-	# mw_client_thread = mindwave_client.Client('http://localhost:5000/')
-	# mw_client_thread.start(
-	# thread.start_new_thread(mindwave_client.run, ())
+
+	# number of frames to record
+	# 1 sec == 2 frames
+	global numFrames
+	numFrames = 20
+
+	global mw_client_thread
+	mw_client_thread = None
+
+	global framesRecorded
+	framesRecorded = 0
+
+	global is_recording
+	is_recording = False
+
+
 	socketio.run(app)
 	# app.run(port=4228,debug=True)

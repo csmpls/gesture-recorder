@@ -1,8 +1,10 @@
+from lib.utils import save_reading, get_trial_path, decode_dict
 from flask import Flask, request, send_file, render_template
 from flask.ext.socketio import SocketIO, emit
 import json
-import mindwave_client
+import lib.mindwave_client
 import time
+import traceback
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -21,7 +23,7 @@ def hello():
 
 	# receive data from mindwave_client
 	if request.method == 'POST':
-		data = handle_data(request.get_json())
+		data = handle_data(json.dumps(request.json))
 		# send socket.io
 		socketio.emit('data', data)
 		return 'ok'
@@ -44,9 +46,19 @@ def connect_to_mwm(message):
 
 @socketio.on('record')
 def record_gesture(message):
-	print 'user wants to record a gesture!', message
+	global recorder_gesture
 	global is_recording
+	global trial_path
+
+	print 'user wants to record a gesture!', decode_dict(message)
+
+	# set global variables to users
+	recorder_gesture = message['gesture']
+	trial_path = get_trial_path(message['userId'],  message['electrodePosition'], recorder_gesture)
+
 	is_recording = True
+
+	# inform the client that we're reocrding
 	emit('start_record', {'msg': 'im starting the recording!'})
 
 '''
@@ -58,20 +70,24 @@ def handle_data(data):
 	return data
 
 def save_data(data):
-	global numFrames
 	global framesRecorded
+	global is_recording
+	global numFrames
+	global recorder_gesture
+	global trial_path
 	# if we've recorded all our frames, 
 	if (framesRecorded == numFrames): 
 		# reset the global vars
-		global is_recording
 		framesRecorded = 0
 		is_recording = False
+		trial_path = None
 		# and inform the client that we're done
-		socketio.emit('end_record', {'msg': 'done_reocording'})
-		return 
+		socketio.emit('end_record', {'msg': 'done recording'})
+		return 0
 	else:
 		framesRecorded += 1
-		print 'recording frame', framesRecorded
+		save_reading(data, trial_path)
+		return 0
 
 def stop_mw_client_thread():
 	global mw_client_thread
@@ -103,6 +119,9 @@ if __name__ == "__main__":
 	global is_recording
 	is_recording = False
 
+	global recorder_id
+	global recorder_electrode_pos
+	global recorder_gesture
 
 	socketio.run(app)
 	# app.run(port=4228,debug=True)

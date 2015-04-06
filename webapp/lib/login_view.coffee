@@ -2,9 +2,7 @@ $ = require 'jquery'
 _ = require 'lodash'
 bacon$ = require 'bacon.jquery'
 baconModel = require 'bacon.model'
-
-nonEmpty = (v) -> v.length > 0 
-setEnabled = (element, enabled) -> element.attr("disabled", !enabled) 
+utils = require './utils.coffee'
 
 
 login_template = ->
@@ -33,8 +31,9 @@ connecting_template = ->
 
 exports.setup = (socket, userDataModel) ->
 
-	electrode_position_list = ['ELB', 'ELA', 'ELH', 'ELE']
+	electrode_position_list = ['ELB', 'ELA', 'ELH', 'ELE', 'normal']
 
+	# render the login template in html body
 	$('body').html(login_template()(
 		electrode_position_list: electrode_position_list))
 
@@ -47,16 +46,17 @@ exports.setup = (socket, userDataModel) ->
 		.skipDuplicates()
 
 	# disable the connect button until a username is entered
-	userIdInputProperty.map(nonEmpty)
-		.assign(setEnabled, $connectButton)
+	userIdInputProperty.map(utils.nonEmpty)
+		.assign(utils.setEnabled, $connectButton)
 
 	connectButtonStream = $connectButton.asEventStream('click')
 
+	# whatever username the person has entered
+	# sampled by a click of the button
 	idSubmissionStream = userIdInputProperty
 		.sampledBy(connectButtonStream)
-		
 
-	# export a stream of id submissions
+	# on submit button click, 
 	idSubmissionStream.onValue((v) ->
 
 			# send a message to the server to connect to mindwave
@@ -70,4 +70,5 @@ exports.setup = (socket, userDataModel) ->
 			# display the connection screen
 			$('body').html(connecting_template()()))
 
+	# export a stream of id submissions
 	return idSubmissionStream

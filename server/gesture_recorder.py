@@ -108,7 +108,7 @@ if __name__ == "__main__":
 	# number of frames to record
 	# 1 sec == 2 frames
 	global numFrames
-	numFrames = 10
+	numFrames = 20
 
 	global mw_client_thread
 	mw_client_thread = None

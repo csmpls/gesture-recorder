@@ -56,7 +56,7 @@ init = ->
 			isSignalFresh(
 				v.reading_time
 				, new Date()))
-		.log('signal is fresh?')
+		# .log('signal is fresh?')
 
 	console.log 'app launched.'
 

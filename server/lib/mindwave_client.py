@@ -34,7 +34,7 @@ class Client(threading.Thread):
         self._stop = threading.Event()
 
         self.server_url = server_url 
-        self.buffer_size = 512 
+        self.buffer_size = 256 # twice per second
         self.raw_log = []
         self.attention_esense= None
         self.meditation_esense= None 

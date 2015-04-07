@@ -89,7 +89,10 @@ setup = (socket, userId, electrodePosition) ->
 		# hide gesture recording prompt
 		$('#recordGesturePrompt').hide()
 		# show currently recording view
-		$('#currentlyRecording').show())
+		$('#currentlyRecording').show()
+		# reset the gesture selector
+		$mentalGestureSelection.val(0)
+		utils.setEnabled($recordButton, false))
 
 	# set back to record screen whenever gesture recording ends 
 	endRecordingStream.onValue( () -> 

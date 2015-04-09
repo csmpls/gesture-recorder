@@ -31,7 +31,8 @@ connecting_template = ->
 
 exports.setup = (socket, userDataModel) ->
 
-	electrode_position_list = ['ELB', 'ELA', 'ELH', 'ELE', 'normal']
+	electrode_position_list = ['ELB', 'ELA', 'ELH', 'ELE'
+	,'ERB', 'ERA','ERH', 'ERE', 'normal']
 
 	# render the login template in html body
 	$('body').html(login_template()(

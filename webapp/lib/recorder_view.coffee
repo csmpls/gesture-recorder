@@ -51,7 +51,8 @@ setup = (socket, userId, electrodePosition) ->
 
 	gestures = ['', 'baseline', 'motor imagery', 'auditory'
 	, 'imagined auditory', 'imagine rotating a cube'
-	, 'color count', 'videoclip', 'eye', 'pass'] 
+	, 'eye open static', 'eye open move', 'eye move'
+	, 'color count', 'videoclip', 'pass'] 
 
 	# render the template to the DOM
 	$('body').html(recorder_screen_template(userId, electrodePosition, gestures))
@@ -92,6 +93,7 @@ setup = (socket, userId, electrodePosition) ->
 		$('#currentlyRecording').show()
 		# reset the gesture selector
 		$mentalGestureSelection.val(0)
+		gestureSelectionModel.set('')
 		utils.setEnabled($recordButton, false))
 
 	# set back to record screen whenever gesture recording ends 

@@ -47,6 +47,8 @@ init = ->
 	# values: true (good signal) / false (bad signal)
 	isSignalGoodStream = dataStream.map(isSignalGood)
 
+	isSignalGoodStream.log()
+
 	# stream of bools representing whether or not the signal is fresh
 	isSignalFreshStream = mindwaveDataProp
 		.sampledBy(Bacon.interval(1000))
